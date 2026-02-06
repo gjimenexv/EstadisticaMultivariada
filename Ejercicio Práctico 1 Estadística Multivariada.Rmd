@@ -1,0 +1,101 @@
+---
+title: "Ejercicio Práctico 1 Estadística Multivariada"
+author: "Guillermo Jimenez, Fabian Barquero, Alexa Campos"
+date: "2026-02-05"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(tidyr)
+
+# Ejercicio Práctico 1
+## Analisis de Clientes Bancarios
+```
+
+## Carga de Datos
+
+#Pregunta 1: Analizando la relación entre variables
+
+<p>Es importante entender que relaciones existent entre las variable cuantitativas y en este caso la hipotesis de salida del banco de algunos clientes. </p>
+```{r pressure, echo=FALSE}
+# SCarga de datos
+datos <- read_excel("BankChurn.xlsx")
+datos$Exited <- factor(datos$Exited, levels = c(0, 1), labels = c("Se Queda", "Abandona"))
+
+# Preparación para graficado múltiple
+datos_long <- datos %>%
+  select(Exited, CreditScore, Age, Tenure, EstimatedSalary) %>%
+  pivot_longer(cols = -Exited, names_to = "Variable", values_to = "Valor")
+
+# Generación del gráfico
+ggplot(datos_long, aes(x = Exited, y = Valor, fill = Exited)) +
+  geom_boxplot(alpha = 0.7, outlier.color = "red") +
+  facet_wrap(~Variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Distribución de Variables según Abandono",
+       x = "Estado del Cliente",
+       y = "Valor Observado") +
+  scale_fill_manual(values = c("#3498db", "#e74c3c"))
+```
+
+<p>Como se puede apreciar la variable que mas diferencia prenseta cuando han salido los clientes es la de años. Teniendo una media un poco mas elevada para cuando ya salen. </p>
+
+# Pregunta 2: Combianacion de variables Años y Antiguedad
+
+<p> </p>
+
+```{r pregunta-2}
+# 1. Crear la variable combinada
+datos$Age_Tenure <- datos$Age + datos$Tenure
+
+# 2. Calcular varianzas individuales
+var_age <- var(datos$Age)
+var_tenure <- var(datos$Tenure)
+
+# 3. Calcular la covarianza entre ambas
+cov_age_tenure <- cov(datos$Age, datos$Tenure)
+
+# 4. Cálculo de varianza de la variable nueva (Directo)
+var_combinada_real <- var(datos$Age_Tenure)
+
+# 5. Cálculo teórico usando la fórmula
+var_teorica <- var_age + var_tenure + (2 * cov_age_tenure)
+
+# Mostramos los resultados para comparar
+resultados <- data.frame(
+  Metodo = c("Suma Simple (V1 + V2)", "Varianza Real (Nueva Variable)", "Cálculo Teórico (Fórmula)"),
+  Valor = c(var_age + var_tenure, var_combinada_real, var_teorica)
+)
+
+print(resultados)
+```
+
+
+
+### A: Varianza individual
+
+
+### B: Varianza 
+
+
+
+# Pregunta 3: Prueba de normalidad multivariada
+
+
+
+# Pregunta 4: Prueba de vectores
+
+
+# Pregunta 5:
+
+## A. Son iguales entre poblaciones?
+
+
+## B. Pruebas univariadas
+
+## C. Conclusiones de relaciones con pregunta 2.

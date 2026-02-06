@@ -47,7 +47,18 @@ ggplot(datos_long, aes(x = Exited, y = Valor, fill = Exited)) +
 
 # Pregunta 2: Combianacion de variables Años y Antiguedad
 
-<p> </p>
+## Análisis de Varianza de Variable Combinada
+
+### A: Varianza individual
+
+En estadística multivariada, cuando sumamos dos variables, la varianza del resultado NO es simplemente la suma de las varianzas individuales, a menos que las variables sean independientes.
+
+Esto es por que la formula es clara, incluye la covariablidad entre ambas.
+
+$$V(X_1 + X_2) = V(X_1) + V(X_2) + 2 \cdot Cov(X_1, X_2)$$
+
+### B: Varianza 
+
 
 ```{r pregunta-2}
 # 1. Crear la variable combinada
@@ -73,15 +84,8 @@ resultados <- data.frame(
 )
 
 print(resultados)
+
 ```
-
-
-
-### A: Varianza individual
-
-
-### B: Varianza 
-
 
 
 # Pregunta 3: Prueba de normalidad multivariada

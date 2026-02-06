@@ -375,8 +375,18 @@ elevada para cuando ya salen.
 </div>
 <div id="pregunta-2-combianacion-de-variables-años-y-antiguedad" class="section level1">
 <h1>Pregunta 2: Combianacion de variables Años y Antiguedad</h1>
-<p>
-</p>
+<div id="a-varianza-individual" class="section level3">
+<h3>A: Varianza individual</h3>
+<p>En estadística multivariada, cuando sumamos dos variables, la
+varianza del resultado NO es simplemente la suma de las varianzas
+individuales, a menos que las variables sean independientes.</p>
+<p>Esto es por que la formula es clara, incluye la covariablidad entre
+ambas.</p>
+<p><code>$$V(X_1 + X_2) = V(X_1) + V(X_2) + 2 \cdot Cov(X_1, X_2)$$</code>
+### B: Varianza</p>
+</div>
+<div id="pregunta-2-análisis-de-varianza-de-variable-combinada" class="section level2">
+<h2>Pregunta 2: Análisis de Varianza de Variable Combinada</h2>
 <pre class="r"><code># 1. Crear la variable combinada
 datos$Age_Tenure &lt;- datos$Age + datos$Tenure
 
@@ -404,11 +414,6 @@ print(resultados)</code></pre>
 ## 1          Suma Simple (V1 + V2) 118.3588
 ## 2 Varianza Real (Nueva Variable) 117.7523
 ## 3      Cálculo Teórico (Fórmula) 117.7523</code></pre>
-<div id="a-varianza-individual" class="section level3">
-<h3>A: Varianza individual</h3>
-</div>
-<div id="b-varianza" class="section level3">
-<h3>B: Varianza</h3>
 </div>
 </div>
 <div id="pregunta-3-prueba-de-normalidad-multivariada" class="section level1">

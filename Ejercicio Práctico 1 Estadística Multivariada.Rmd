@@ -90,9 +90,56 @@ print(resultados)
 
 # Pregunta 3: Prueba de normalidad multivariada
 
+## Análisis de Normalidad y Distorsión
 
+```{r prueba-jb}
+# 1. Cargar las librerías solicitadas
+library(tseries) # Para jarque.bera.test
+library(moments) # Para skewness y kurtosis
+library(nortest) # Para pruebas de normalidad adicionales
+
+# 2. Seleccionar variables
+vars_cuant <- datos[, c("CreditScore", "Age", "Tenure", "EstimatedSalary")]
+
+# 3. Aplicar Jarque-Bera y estadísticos de forma masiva
+analisis_univariado <- sapply(vars_cuant, function(x) {
+  test <- jarque.bera.test(x)
+  c(Asimetria = skewness(x), 
+    Curtosis_Exceso = kurtosis(x) - 3, # Restamos 3 para que 0 sea el ideal
+    JB_p_value = test$p.value)
+})
+
+print(t(analisis_univariado))
+```
+
+
+**A. ¿Es razonable que la variable X se distribuya de manera normal? ¿Por qué?**
+
+**La variable crítica es Age (Edad).** el valor de `Asimetria`para **Age**, es cercano a $1.01$. En una normal perfecta, debería ser $0$.
+
+**CreditScore** también tiene una curtosis negativa, pero la edad es la que más se aleja del ideal de simetría.
 
 # Pregunta 4: Prueba de vectores
+
+## Prueba de Hipótesis Multivariada (Hotelling's T2)
+
+```{r prueba-hotelling}
+# 1. Cargar librerías
+library(ICSNP) # Para la función HotellingsT2
+
+# 2. Filtrar los datos: solo los que salieron del banco (Exited == 1)
+datos_exit <- datos %>% 
+  filter(Exited == "Abandona") %>% 
+  select(CreditScore, Age, Tenure, EstimatedSalary)
+
+# 3. Definir nuestro vector de "Creencia" (mu_0)
+mu_0 <- c(650, 45, 5, 100000)
+
+# 4. Realizar la prueba formal
+prueba_t2 <- HotellingsT2(datos_exit, mu = mu_0)
+
+print(prueba_t2)
+```
 
 
 # Pregunta 5:

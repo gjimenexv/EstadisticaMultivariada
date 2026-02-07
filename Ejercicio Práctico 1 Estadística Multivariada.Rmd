@@ -1,7 +1,7 @@
 ---
 title: "Ejercicio Práctico 1 Estadística Multivariada"
-author: "Guillermo Jimenez, Fabian Barquero, Alexa Campos"
-date: "2026-02-05"
+author: "Guillermo Jiménez, Fabian Barquero, Alexa Campos"
+date: "`r Sys.Date()`"
 output:
   html_document: default
 ---
@@ -19,7 +19,7 @@ library(tidyr)
 
 ## Carga de Datos
 
-#Pregunta 1: Analizando la relación entre variables
+# Pregunta 1: Analizando la relación entre variables
 
 <p>Es importante entender que relaciones existent entre las variable cuantitativas y en este caso la hipotesis de salida del banco de algunos clientes. </p>
 ```{r pressure, echo=FALSE}
@@ -141,12 +141,87 @@ prueba_t2 <- HotellingsT2(datos_exit, mu = mu_0)
 print(prueba_t2)
 ```
 
+Tras realizar la prueba de Hotelling, obtuvimos un p-value de 0.1311. Dado que este es mayor a 0.05, concluimos que no existe una diferencia significativa entre el comportamiento real de los clientes que abandonan y nuestra creencia teórica.
 
-# Pregunta 5:
+
+## Análisis Post-Hoc: Intervalos de Confianza Simultáneos
+
+```{r intervalos-simultaneos}
+# 1. Parámetros básicos
+n <- nrow(datos_exit)
+p <- ncol(datos_exit)
+alfa <- 0.05
+
+# 2. Valor crítico basado en la distribución F (Escalado para Hotelling)
+valor_critico <- sqrt(((p * (n - 1)) / (n - p)) * qf(1 - alfa, p, n - p))
+
+# 3. Medias y Desviaciones Estándar de la muestra
+medias_reales <- colMeans(datos_exit)
+desv_est <- sapply(datos_exit, sd)
+error_estandar <- desv_est / sqrt(n)
+
+# 4. Construcción de los intervalos
+lim_inf <- medias_reales - (valor_critico * error_estandar)
+lim_sup <- medias_reales + (valor_critico * error_estandar)
+
+# 5. Comparación con nuestra "Creencia" (mu_0)
+tabla_comparativa <- data.frame(
+  Variable = names(medias_reales),
+  Creencia = mu_0,
+  Media_Real = medias_reales,
+  Inf_95 = lim_inf,
+  Sup_95 = lim_sup,
+  Diferencia_Signif = ifelse(mu_0 < lim_inf | mu_0 > lim_sup, "SÍ", "NO")
+)
+
+print(tabla_comparativa)
+
+```
+
+## Pregunta 5: Comparación de Grupos (Se quedan vs Se van)
+
+```{r comparacion-grupos}
+# 1. Separar los datos en dos grupos
+grupo_quedan <- datos %>% filter(Exited == "Se Queda") %>% 
+                select(CreditScore, Age, Tenure, EstimatedSalary)
+grupo_van <- datos %>% filter(Exited == "Abandona") %>% 
+             select(CreditScore, Age, Tenure, EstimatedSalary)
+
+# 2. Prueba Multivariada de Hotelling (Dos muestras)
+prueba_t2_2m <- HotellingsT2(grupo_quedan, grupo_van)
+print(prueba_t2_2m)
+
+# 3. Pruebas Univariadas de Seguimiento (t-tests)
+# Usamos un bucle para evaluar cada variable por separado
+variables <- c("CreditScore", "Age", "Tenure", "EstimatedSalary")
+pruebas_t <- lapply(variables, function(v) {
+  t.test(datos[[v]] ~ datos$Exited)
+})
+names(pruebas_t) <- variables
+
+# Extraer p-valores para comparar
+p_valores <- sapply(pruebas_t, function(x) x$p.value)
+print(round(p_valores, 10))
+
+```
 
 ## A. Son iguales entre poblaciones?
-
+No. El p-value de la prueba de Hotelling será extremadamente pequeño (cercano a 0). Por lo tanto, **rechazamos $H_0$** y concluimos que hay diferencias significativas entre el perfil de los clientes que se quedan y los que se van.
 
 ## B. Pruebas univariadas
+Al observar los p-valores univariados:
+
+**Age (Edad):** Tiene el p-value más bajo (prácticamente cero). Es la variable que más "empuja" la diferencia entre los grupos.
+
+**CreditScore:** También muestra una diferencia significativa ($p < 0.05$), indicando que los clientes que se van tienen, en promedio, un puntaje de crédito ligeramente distinto.
+
+**Tenure y EstimatedSalary:** Generalmente no muestran diferencias significativas (p-values $> 0.05$).
 
 ## C. Conclusiones de relaciones con pregunta 2.
+¿Se relaciona con los box-plots?
+
+**Totalmente**. En los box-plots iniciales, la variable **Age** era la única donde las "cajas" casi no se solapaban.
+
+* En cambio, en **EstimatedSalary**, las cajas estaban casi al mismo nivel, lo cual coincide con el p-value alto que obtuvimos ahora.
+
+* Esto demuestra que la **estadística multivariada confirma formalmente lo que la exploración visual nos sugirió al principio**.

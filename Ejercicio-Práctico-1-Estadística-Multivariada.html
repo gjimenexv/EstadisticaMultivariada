@@ -9,9 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Guillermo Jimenez, Fabian Barquero, Alexa Campos" />
+<meta name="author" content="Guillermo Jiménez, Fabian Barquero, Alexa Campos" />
 
-<meta name="date" content="2026-02-05" />
+<meta name="date" content="2026-02-06" />
 
 <title>Ejercicio Práctico 1 Estadística Multivariada</title>
 
@@ -352,15 +352,17 @@ display: none;
 
 <h1 class="title toc-ignore">Ejercicio Práctico 1 Estadística
 Multivariada</h1>
-<h4 class="author">Guillermo Jimenez, Fabian Barquero, Alexa Campos</h4>
-<h4 class="date">2026-02-05</h4>
+<h4 class="author">Guillermo Jiménez, Fabian Barquero, Alexa Campos</h4>
+<h4 class="date">2026-02-06</h4>
 
 </div>
 
 
 <div id="carga-de-datos" class="section level2">
 <h2>Carga de Datos</h2>
-<p>#Pregunta 1: Analizando la relación entre variables</p>
+</div>
+<div id="pregunta-1-analizando-la-relación-entre-variables" class="section level1">
+<h1>Pregunta 1: Analizando la relación entre variables</h1>
 <p>
 Es importante entender que relaciones existent entre las variable
 cuantitativas y en este caso la hipotesis de salida del banco de algunos
@@ -456,8 +458,8 @@ pero la edad es la que más se aleja del ideal de simetría.</p>
 </div>
 <div id="pregunta-4-prueba-de-vectores" class="section level1">
 <h1>Pregunta 4: Prueba de vectores</h1>
-<div id="pregunta-4-prueba-de-hipótesis-multivariada-hotellings-t2" class="section level2">
-<h2>Pregunta 4: Prueba de Hipótesis Multivariada (Hotelling’s T2)</h2>
+<div id="prueba-de-hipótesis-multivariada-hotellings-t2" class="section level2">
+<h2>Prueba de Hipótesis Multivariada (Hotelling’s T2)</h2>
 <pre class="r"><code># 1. Cargar librerías
 library(ICSNP) # Para la función HotellingsT2
 
@@ -479,18 +481,118 @@ print(prueba_t2)</code></pre>
 ## data:  datos_exit
 ## T.2 = 1.7755, df1 = 4, df2 = 2033, p-value = 0.1311
 ## alternative hypothesis: true location is not equal to c(650,45,5,1e+05)</code></pre>
+<p>Tras realizar la prueba de Hotelling, obtuvimos un p-value de 0.1311.
+Dado que este es mayor a 0.05, concluimos que no existe una diferencia
+significativa entre el comportamiento real de los clientes que abandonan
+y nuestra creencia teórica.</p>
 </div>
+<div id="análisis-post-hoc-intervalos-de-confianza-simultáneos" class="section level2">
+<h2>Análisis Post-Hoc: Intervalos de Confianza Simultáneos</h2>
+<pre class="r"><code># 1. Parámetros básicos
+n &lt;- nrow(datos_exit)
+p &lt;- ncol(datos_exit)
+alfa &lt;- 0.05
+
+# 2. Valor crítico basado en la distribución F (Escalado para Hotelling)
+valor_critico &lt;- sqrt(((p * (n - 1)) / (n - p)) * qf(1 - alfa, p, n - p))
+
+# 3. Medias y Desviaciones Estándar de la muestra
+medias_reales &lt;- colMeans(datos_exit)
+desv_est &lt;- sapply(datos_exit, sd)
+error_estandar &lt;- desv_est / sqrt(n)
+
+# 4. Construcción de los intervalos
+lim_inf &lt;- medias_reales - (valor_critico * error_estandar)
+lim_sup &lt;- medias_reales + (valor_critico * error_estandar)
+
+# 5. Comparación con nuestra &quot;Creencia&quot; (mu_0)
+tabla_comparativa &lt;- data.frame(
+  Variable = names(medias_reales),
+  Creencia = mu_0,
+  Media_Real = medias_reales,
+  Inf_95 = lim_inf,
+  Sup_95 = lim_sup,
+  Diferencia_Signif = ifelse(mu_0 &lt; lim_inf | mu_0 &gt; lim_sup, &quot;SÍ&quot;, &quot;NO&quot;)
+)
+
+print(tabla_comparativa)</code></pre>
+<pre><code>##                        Variable Creencia   Media_Real      Inf_95       Sup_95
+## CreditScore         CreditScore      650 6.453515e+02   638.49346 6.522095e+02
+## Age                         Age       45 4.483800e+01    44.17069 4.550530e+01
+## Tenure                   Tenure        5 4.932744e+00     4.73203 5.133458e+00
+## EstimatedSalary EstimatedSalary   100000 1.014657e+05 97506.75096 1.054246e+05
+##                 Diferencia_Signif
+## CreditScore                    NO
+## Age                            NO
+## Tenure                         NO
+## EstimatedSalary                NO</code></pre>
 </div>
-<div id="pregunta-5" class="section level1">
-<h1>Pregunta 5:</h1>
+<div id="pregunta-5-comparación-de-grupos-se-quedan-vs-se-van" class="section level2">
+<h2>Pregunta 5: Comparación de Grupos (Se quedan vs Se van)</h2>
+<pre class="r"><code># 1. Separar los datos en dos grupos
+grupo_quedan &lt;- datos %&gt;% filter(Exited == &quot;Se Queda&quot;) %&gt;% 
+                select(CreditScore, Age, Tenure, EstimatedSalary)
+grupo_van &lt;- datos %&gt;% filter(Exited == &quot;Abandona&quot;) %&gt;% 
+             select(CreditScore, Age, Tenure, EstimatedSalary)
+
+# 2. Prueba Multivariada de Hotelling (Dos muestras)
+prueba_t2_2m &lt;- HotellingsT2(grupo_quedan, grupo_van)
+print(prueba_t2_2m)</code></pre>
+<pre><code>## 
+##  Hotelling&#39;s two sample T2-test
+## 
+## data:  grupo_quedan and grupo_van
+## T.2 = 224.41, df1 = 4, df2 = 9995, p-value &lt; 2.2e-16
+## alternative hypothesis: true location difference is not equal to c(0,0,0,0)</code></pre>
+<pre class="r"><code># 3. Pruebas Univariadas de Seguimiento (t-tests)
+# Usamos un bucle para evaluar cada variable por separado
+variables &lt;- c(&quot;CreditScore&quot;, &quot;Age&quot;, &quot;Tenure&quot;, &quot;EstimatedSalary&quot;)
+pruebas_t &lt;- lapply(variables, function(v) {
+  t.test(datos[[v]] ~ datos$Exited)
+})
+names(pruebas_t) &lt;- variables
+
+# Extraer p-valores para comparar
+p_valores &lt;- sapply(pruebas_t, function(x) x$p.value)
+print(round(p_valores, 10))</code></pre>
+<pre><code>##     CreditScore             Age          Tenure EstimatedSalary 
+##     0.008464729     0.000000000     0.166356990     0.228924613</code></pre>
+</div>
 <div id="a.-son-iguales-entre-poblaciones" class="section level2">
 <h2>A. Son iguales entre poblaciones?</h2>
+<p>No. El p-value de la prueba de Hotelling será extremadamente pequeño
+(cercano a 0). Por lo tanto, <strong>rechazamos <span class="math inline">\(H_0\)</span></strong> y concluimos que hay
+diferencias significativas entre el perfil de los clientes que se quedan
+y los que se van.</p>
 </div>
 <div id="b.-pruebas-univariadas" class="section level2">
 <h2>B. Pruebas univariadas</h2>
+<p>Al observar los p-valores univariados:</p>
+<p><strong>Age (Edad):</strong> Tiene el p-value más bajo (prácticamente
+cero). Es la variable que más “empuja” la diferencia entre los
+grupos.</p>
+<p><strong>CreditScore:</strong> También muestra una diferencia
+significativa (<span class="math inline">\(p &lt; 0.05\)</span>),
+indicando que los clientes que se van tienen, en promedio, un puntaje de
+crédito ligeramente distinto.</p>
+<p><strong>Tenure y EstimatedSalary:</strong> Generalmente no muestran
+diferencias significativas (p-values <span class="math inline">\(&gt;
+0.05\)</span>).</p>
 </div>
 <div id="c.-conclusiones-de-relaciones-con-pregunta-2." class="section level2">
 <h2>C. Conclusiones de relaciones con pregunta 2.</h2>
+<p>¿Se relaciona con los box-plots?</p>
+<p><strong>Totalmente</strong>. En los box-plots iniciales, la variable
+<strong>Age</strong> era la única donde las “cajas” casi no se
+solapaban.</p>
+<ul>
+<li><p>En cambio, en <strong>EstimatedSalary</strong>, las cajas estaban
+casi al mismo nivel, lo cual coincide con el p-value alto que obtuvimos
+ahora.</p></li>
+<li><p>Esto demuestra que la <strong>estadística multivariada confirma
+formalmente lo que la exploración visual nos sugirió al
+principio</strong>.</p></li>
+</ul>
 </div>
 </div>
 
